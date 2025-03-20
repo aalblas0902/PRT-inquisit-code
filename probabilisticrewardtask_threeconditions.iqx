@@ -1,0 +1,1332 @@
+﻿<usermanual>
+						
+									PROBABILISTIC REWARD TASK
+SCRIPT INFO
+
+Script Author: Katja Borchert, Ph.D. (katjab@millisecond.com) for Millisecond Software, LLC
+Date: 09-22-2015
+last updated: 03-29-2020 by K.Borchert (katjab@millisecond.com) for Millisecond Software LLC
+
+Script Copyright © 03-29-2020 Millisecond Software
+
+
+BACKGROUND INFO
+
+											*Purpose*
+This script implements a Probabilistic Reward Task as described in:
+
+Pizzagalli, D.A., Jahn, A.L, & O’Shea, J.P. (2005). Toward an Objective Characterization of an Anhedonic
+Phenotype: A Signal-Detection Approach. Biol Psychiatry, 57(4), 319–327.
+
+
+											  *Task*
+Participants are asked to categorize faces into "short" and "long" mouths. Correct responses are 
+intermittedly rewarded with an asymmetric reinforcement schedule for short and long mouths.
+For half the participants short mouths get reinforced about 60% of the times ("frequent reward") whereas long mouths
+get reinforced only about 20% of the times ("infrequent reward"); for the other half of the participants the reverse is true.
+Responsekeys are counterbalanced within groups.
+Assignment to the 4 experimental condition (2 reinforcement schedules x 2 response keys assignments) is done by
+groupnumber.
+
+
+DATA FILE INFORMATION: 
+The default data stored in the data files are:
+
+(1) Raw data file: 'ProbabilisticRewardTask_raw*.iqdat' (a separate file for each participant)
+
+build:							Inquisit build
+computer.platform:				the platform the script was run on
+date, time, subject, group:		date and time script was run with the current subject/groupnumber 
+/expgroup						1 = short mouth is frequently rewarded; 2 = long mouth is frequently rewarded
+/responsekeyassignment:			1 = short mouth left/long mouth right; 2 = short mouth right/long mouth left
+blockcode, blocknum:			the name and number of the current block
+/blockcount:					counts the blocks
+trialcode, trialnum: 			the name and number of the currently recorded trial
+									(Note: not all trials that are run might record data; by default data is collected unless /recorddata = false is set for a particular trial/block) 
+
+/reward_short:					0 = short mouth trial is not supposed to be rewarded; 
+								1 = short mouth trial is supposed to be rewarded (if response is correct; otherwise the next short trial that is correct is rewarded)
+/new_reward_short:				0 = no new values.reward_short (this happens if the last short mouth trial was supposed to be rewarded but response was incorrect)
+								1 = a new values.reward_short needs to be determined
+/reward_long:					0 = long mouth trial is not supposed to be rewarded; 
+								1 = long mouth trial is supposed to be rewarded (if response is correct; otherwise the next log trial that is correct is rewarded)
+/new_reward_long:				0 = no new values.reward_long (this happens if the last long mouth trial was supposed to be rewarded but response was incorrect)
+								1 = a new values.reward_long needs to be determined
+stimulusitem:					the presented stimuli in order of trial presentation
+response:						the participant's response
+correct:						the correctness of the response (1 = correct; 0 = incorrect)
+
+latency: 						the response latency (in ms); measured from onset of target
+/total:							stores the currently total cents won (across test blocks)
+/countrewardtrials:				counts the number of rewards given out (across test blocks)
+
+(2) Summary data file: 'ProbabilisticRewardTask_summary*.iqdat' (a separate file for each participant)
+
+script.startdate:				date script was run
+script.starttime:				time script was started
+script.subjectid:				subject id number
+script.groupid:					group id number
+/expgroup:						1 = short mouth is frequently rewarded; 2 = long mouth is frequently rewarded
+/responsekeyassignment:			1 = short mouth left/long mouth right; 2 = short mouth right/long mouth left
+script.elapsedtime:				time it took to run script (in ms)
+computer.platform:				the platform the script was run on
+/completed:						0 = script was not completed (prematurely aborted); 1 = script was completed (all conditions run)
+/countrewardtrials:				counts the number of rewards given out (across test blocks)
+/total:							the total earned in $ amounts
+
+Notes: 
+No outlier removal
+
+/propcorrect:					overall proportion correct -across all test trials-
+/meanRT:						overall mean response latency (in ms) of correct responses - across all test trials
+/propcorrect_frequent:			proportion correct frequently rewarded mouth trials
+/meanRT_frequent:				mean latency (in ms) of correct frequently rewarded mouth trials
+/propcorrect_infrequent:		proportion correct infrequently rewarded mouth trials
+/meanRT_infrequent:				mean latency (in ms) of correct infrequently rewarded mouth trials
+/logd:							Measure of Discriminability (see Pizzagalli et al, 2005, p.5)
+/logb:							Measure of Response Bias  (see Pizzagalli et al, 2005, p.5)
+
+EXPERIMENTAL SET-UP
+
+2 reward frequency schedules x 2 response key assignments: Assignment to the 4 experimental groups is done by groupnumber
+
+group 1 (odd groupnumbers)-> short mouth faces are frequently rewarded if response is correct (potentially 30 out of 50 trials ); long mouth faces are infrequently rewarded if correct (potentially 10 out of 50 trials)
+group 2 (even groupnumbers)-> long mouth faces are frequently rewarded if response is correct (potentially 30 out of 50 trials ); short mouth faces are infrequently rewarded if correct (potentially 10 out of 50 trials)
+within those groups, response key assignments are counterbalanced
+
+
+1. Practice Block: 
+* a short demonstration of 2 trials
+* 2 trials, 1 of short mouth faces and 1 of long mouth faces (same durations as test trials )
+
+2. Test Blocks: 
+* 3 Blocks, each block runs 100 trials (50 short mouth trials, 50 long mouth trials)
+* order of short and long mouth trials is randomly determined with the constraint that 
+no more than 3 consecutive uns of the same trial type
+* frequently rewarded mouth trials: 30 (30/50->60%); infrequently rewarded mouth trials: 10 (10/50->20%)
+	-> per block there are 40 potential reward trials 
+(Note: if participants make mistakes during reward trials, the actual number of rewarded trials MIGHT be lower)
+	-> the reinforcement schedules for each trial type are randomized (see section Editable Lists for more info)
+	-> if a trial has been randomly determined to be a rewarded trial but the response is incorrect, the next
+	correct trial of the same trial type is rewarded instead
+* there is a forced 30s (default) rest period inbetween each test block; the task continues automatically
+
+Trial Sequence:
+fixation (500ms)->No Mouth Face->(500ms)->Mouth Face(100ms)->No Mouth Face until response (response latency is taken and measured from onset of Mouth Face)
+
+STIMULI
+Face Stimuli are not original to Pizzagalli et al (2005). They can be edited under section Editable Stimuli.
+(The default short mouth is about 88% of the long mouth).
+Sizes of stimuli on screen are proportional to the monitor/canvas size; they can be adjusted under
+section Editable Parameters.
+
+INSTRUCTIONS
+Instructions are not original to Pizzagalli et al (2005). They can be edited under section Editable Instructions.
+
+EDITABLE CODE:
+check below for (relatively) easily editable parameters, stimuli, instructions etc. 
+Keep in mind that you can use this script as a template and therefore always "mess" with the entire code to further customize your experiment.
+
+The parameters you can change are:
+
+/responsekeyleft:					the scancode of the left response key (default: 18 -> E)
+										Note: Menu -> Tools -> Keyboard Scancodes
+/responsekeyleft_label:				the label of the left response key (default: "E")
+/responsekeyright:					the scancode of the right response key (default: 23 -> I)
+/responsekeyright_label:			the label of the right response key (default: "I")
+
+/fixationduration:					the duration of the fixation stim in ms (default: 500)
+/signalduration:					the duration of the signal (face without mouth) before target appears in ms (default: 500)
+/targetduration:					the duration of the target (face with mouth) in ms (default: 100)
+/ITI:								the duration of the intertrial interval in ms (default: 0)
+/feedbackduration:					the duration of the feedback stim in ms (default: 1750)
+/restduration:						the duration of the rest trial inbetween blocks in ms (default: 30000)
+
+/fixationheight:					the size of the fixation stim in % of canvas height (default: 10%)
+/picsize:							the size of the face images in % of canvas size (default: 80%)
+/feedbackheight:					the size of the feedback stim in % of canvas size (default: 6%)
+/rewardamount:						the size of the reward in cents (default: 5)
+
+</usermanual>
+
+
+**************************************************************************************************************
+**************************************************************************************************************
+	EDITABLE PARAMETERS: change editable parameters here
+**************************************************************************************************************
+**************************************************************************************************************
+
+<parameters>
+/responsekeyleft = 18
+/responsekeyleft_label = "E"
+/responsekeyright = 23
+/responsekeyright_label = "I"
+
+/fixationduration = 500
+/signalduration = 500
+/targetduration = 100
+/ITI = 0
+/feedbackduration = 1750
+/restduration = 30000
+/checkduration = 45000
+/paymentduration = 15000
+
+/fixationheight = 10%
+/picsize = 80%
+/feedbackheight = 6%
+/rewardamount = 4
+</parameters>
+
+
+**************************************************************************************************************
+**************************************************************************************************************
+	EDITABLE STIMULI: change editable stimuli here
+**************************************************************************************************************
+**************************************************************************************************************
+
+<item targets>
+/1 = "Signalface.png"
+/2 = "ShortMouthface.png"
+/3 = "LongMouthface.png"
+/4 = "ShortMouthface_92.png"
+/5 = "ShortMouthface_95.png"
+
+</item>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	EDITABLE INSTRUCTIONS: change instructions here
+**************************************************************************************************************
+**************************************************************************************************************
+
+<item instructions>
+/1 = "The goal of this study is to win as much money as possible! 
+You earn money by correctly sorting cartoon faces that differ slightly in the length of their mouth into the two categories (in blue) posted above.
+
+
+
+You will be briefly presented one of these two cartoon faces. 
+
+
+
+
+
+
+
+<%values.leftresponselabel%> mouth: press the LEFT ('<%parameters.responsekeyleft_label%>') <%expressions.buttoninstruct1%>.          <%values.rightresponselabel%> mouth: press the RIGHT ('<%parameters.responsekeyright_label%>') <%expressions.buttoninstruct1%>.
+
+
+
+Press <SPACEBAR> for a demo trial."
+/2 = "Now, it's your turn to practice.
+
+
+
+You will be briefly presented one of two cartoon faces. 
+The faces differ very slightly in the length of their mouth.
+
+
+
+
+
+
+
+
+<%values.leftresponselabel%> mouth: press the LEFT ('<%parameters.responsekeyleft_label%>') <%expressions.buttoninstruct1%>.          <%values.rightresponselabel%> mouth: press the RIGHT ('<%parameters.responsekeyright_label%>') <%expressions.buttoninstruct1%>.
+
+
+
+Press <SPACEBAR> for a short practice."
+/3 = "Press <SPACEBAR> to begin the task.
+
+
+
+
+
+
+
+
+
+<%values.leftresponselabel%> mouth: press the LEFT ('<%parameters.responsekeyleft_label%>') <%expressions.buttoninstruct1%>.          <%values.rightresponselabel%> mouth: press the RIGHT ('<%parameters.responsekeyright_label%>') <%expressions.buttoninstruct1%>.
+"
+</item>
+
+
+<item feedback>
+/1 = "Correct!"
+/2 = "Correct! You won <%parameters.rewardamount%> cents.
+
+Your total is $<%expressions.total%>"
+/3 = "Wrong"
+</item>
+
+<item restinstructions>
+/1 = "This is a short break. The task will continue in:"
+</item>
+
+<item demoinstructions>
+/1 = "This was a SHORT mouth - Press the <%values.responsekey_short_label%> <%expressions.buttoninstruct1%>"
+/2 = "This was a LONG mouth - Press the <%values.responsekey_long_label%> <%expressions.buttoninstruct1%>"
+</item>
+
+
+<item checkinstructions>
+/1 = "Please read these instructions carefully: there will be a short quiz will follow to check your understanding.
+
+
+There are three blocks of trials, each followed by a 30-second break. In each trial, you'll see one of two cartoon faces with slightly different mouth lengths.
+You'll earn money by identifying short and long mouths, but not all your correct answers will be rewarded. If rewarded, you'll earn <%parameters.rewardamount%> cents.
+
+
+
+
+
+
+
+<%values.leftresponselabel%> mouth: press the LEFT ('<%parameters.responsekeyleft_label%>') <%expressions.buttoninstruct1%>.          <%values.rightresponselabel%> mouth: press the RIGHT ('<%parameters.responsekeyright_label%>') <%expressions.buttoninstruct1%>.
+
+"
+</item>
+
+
+<item checkpayment>
+/1 = "Also, remember that you will receive your earnings once you have completed the task. This is real money and you will be paid what you earn after the experiment. 
+
+The better you perform on the task the more money you will earn, so make sure you don't have any distractions when you start the task, and try your best! 
+
+Look out for a GiftPay voucher in your email within the week. 😊"
+</item>
+
+
+
+<item checklikert>
+
+/1 = "QUESTION"
+
+</item>
+
+
+<page End>
+Thank you, you have completed the task! 😊
+
+^^^IMPORTANT: Please press the SPACE BAR to be directed to a Qualtrics survey where you will answer a series of questions. 
+^^^Make sure to finish the questionnaire to receive your REP credit as well as the money that you earned in this task. 
+
+^^^^You earned: $<%expressions.total%>
+</page>
+
+
+*******************************
+General Helper Instructions
+******************************
+
+<text getReady>
+/items = ("Get Ready:
+~n<%expressions.buttoninstruct2%>")
+/ fontstyle = ("Arial", 3.00%, false, false, false, false, 5, 1)
+/ size = (80%, 40%)
+</text>
+
+****************************************************************************************************
+general instruction expressions: adjust the instruction text depending on device used to run script
+****************************************************************************************************
+<expressions>
+/buttoninstruct1 = if (computer.touch && !computer.haskeyboard) {"button";} else {"key";}
+/buttoninstruct2 = if (computer.touch && !computer.haskeyboard) {"Throughout the task keep your index fingers over the left and right response buttons.";} else {"Put your index fingers on the <%parameters.responsekeyleft_label%> and <%parameters.responsekeyright_label%> keys.";}
+</expressions>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	EDITABLE LISTS: change editable lists here
+**************************************************************************************************************
+**************************************************************************************************************
+
+Note: list.trialselector selects randomly a frequently or an infrequently rewarded stimulus trial
+with the constraint that no more than 3 of the same are run consecutively.
+By default, each block runs 100 trials (50 of each stimulus)
+
+<list trialselector>
+/ items = (trial.shortmouth, trial.longmouth)
+/ poolsize = 100
+/ itemprobabilities = (0.5, 0.5)
+/ maxrunsize = 3
+/ selectionmode = random
+/ replace = false
+/ resetinterval = 0
+</list>
+
+
+<list trialselector_harder1>
+/ items = (trial.shortmouth_harder1, trial.longmouth)
+/ poolsize = 100
+/ itemprobabilities = (0.5, 0.5)
+/ maxrunsize = 3
+/ selectionmode = random
+/ replace = false
+/ resetinterval = 0
+</list>
+
+
+<list trialselector_harder2>
+/ items = (trial.shortmouth_harder2, trial.longmouth)
+/ poolsize = 100
+/ itemprobabilities = (0.5, 0.5)
+/ maxrunsize = 3
+/ selectionmode = random
+/ replace = false
+/ resetinterval = 0
+</list>
+
+
+Note: this list samples randomly whether the presented frequently rewarded target stimulus (e.g. short mouth)
+is rewarded (1) or not (0)
+By default, there are 50 Frequently Rewarded Target trials (e.g. short mouth) in each block of 100 trials.
+60% of these trials are rewarded (=30/50); 40% of these are not rewarded (=20/50).
+<list frequentrewardtrials>
+/items = (1, 0)
+/ poolsize = 50
+/ itemprobabilities = (0.6, 0.4)
+/ selectionmode = random
+/ replace = false
+/ resetinterval = 1
+</list>
+
+Note: this list samples randomly whether the presented infrequently rewarded target stimulus (e.g. long mouth)
+is rewarded (1) or not (0)
+By default, there are 50 Infrequently Rewarded Target trials (e.g. long mouth) in each block of 100 trials.
+20% of these trials are rewarded (=10/50); 80% of these are not rewarded (=40/50).
+<list infrequentrewardtrials>
+/items = (1, 0)
+/ poolsize = 50
+/ itemprobabilities = (0.2, 0.8)
+/ selectionmode = random
+/ replace = false
+/ resetinterval = 1
+</list>
+**************************************************************************************************************
+								!!!REMAINING CODE: Customize after careful consideration only!!!
+**************************************************************************************************************
+
+
+**************************************************************************************************************
+**************************************************************************************************************
+	DEFAULTS
+**************************************************************************************************************
+**************************************************************************************************************
+script requires Inquisit 5.0.0.0 or higher
+
+<defaults>
+/canvasaspectratio = (4,3)
+/minimumversion = "5.0.0.0"
+/ fontstyle = ("Arial", 3%, false, false, false, false, 5, 1)
+/txbgcolor = white
+/ txcolor = black
+</defaults>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	DATA
+**************************************************************************************************************
+**************************************************************************************************************
+
+Note: data file explanations under User Manual Information at the top
+
+***********************
+raw data file
+***********************
+<data>
+/ separatefiles = true
+/ columns = (build, computer.platform, date, time, subject, group, values.expgroup, values.responsekeyassignment, blockcode, blocknum, values.blockcount, trialcode, trialnum, 
+values.reward_short, values.new_reward_short, values.reward_long, values.new_reward_long, stimulusitem, response, correct, latency, 
+values.countrewardtrials, values.total)
+</data>
+
+***********************
+summary data file
+***********************
+<summarydata>
+/columns = (script.startdate, script.starttime, script.subjectid, script.groupid, values.expgroup, values.responsekeyassignment, 
+script.elapsedtime, computer.platform, values.completed, 
+values.countrewardtrials, expressions.total, expressions.propcorrect, expressions.meanRT,
+expressions.propcorrect_frequent, expressions.propcorrect_infrequent, expressions.meanRT_frequent, expressions.meanRT_infrequent,
+expressions.logd, expressions.logb)
+/ separatefiles = true
+</summarydata>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	VALUES: automatically updated
+**************************************************************************************************************
+**************************************************************************************************************
+                                    
+/completed:					0 = script was not completed; 1 = script was completed (all conditions run)
+/expgroup:					1 = short mouth is frequently rewarded; 2 = long mouth is frequently rewarded
+/responsekeyassignment:		1 = short mouth left; 2 = short mouth right
+/target:					helper stimulus that stores the itemnumber of the to be presented target face
+/reward_short:				0 = short mouth trial is not supposed to be rewarded; 
+							1 = short mouth trial is supposed to be rewarded (if response is correct; otherwise the next short trial that is correct)
+/reward_long:				0 = long mouth trial is not supposed to be rewarded; 
+							1 = long mouth trial is supposed to be rewarded (if response is correct; otherwise the next log trial that is correct)
+/new_reward_short:			0 = no new values.reward_short (this happens if the last short mouth trial was supposed to be rewarded but response was incorrect)
+							1 = a new values.reward_short needs to be determined
+/new_reward_long:			0 = no new values.reward_long (this happens if the last long mouth trial was supposed to be rewarded but response was incorrect)
+							1 = a new values.reward_long needs to be determined
+/responsekey_short:			the scancode for short
+/responsekey_long:			the scancode for long
+/responsekey_short_label:	the label of the short response key
+/responsekey_long_label:	the label of the long response key
+/leftresponselabel:			the label that appears in the left upper left corner
+/rightresponselabel:		the label that appears in the left upper right corner
+/leftpic:					helper stim for instructions: stores itemnumber of the face picture to be presented on the left
+/rightpic:					helper stim for instructions: stores itemnumber of the face picture to be presented on the right
+/selectinstructions:		stores itemnumber of the instruction item that needs to be presented
+/total:						stores the currently total cents won
+/blockcount:				counts the blocks
+/countrewardtrials:			counts the number of rewards given out
+
+
+<values>
+/completed = 0
+/expgroup = 0
+/responsekeyassignment = 0
+/target = 0
+/reward_short = 0
+/reward_long = 0
+/new_reward_short = 0
+/new_reward_long = 0
+/responsekey_short =0
+/responsekey_long = 0
+/responsekey_short_label =0
+/responsekey_long_label = 0
+/leftresponselabel = 0
+/rightresponselabel = 0
+/leftpic = 1
+/rightpic = 2
+/selectinstructions = 1
+/total = 0
+/blockcount = 0
+/countrewardtrials = 0
+</values>
+
+**************************************
+Summary Values
+**************************************
+/count_short:				counts the short mouth trials run
+/countcorrect_short:		counts the correct short mouth trials run
+/sumrt_short:				sums up the latencies of correct short mouth trials
+/count_long:				counts the long mouth trials run
+/countcorrect_long:			counts the correct long mouth trials run
+/sumrt_long:				sums up the latencies of correct long mouth trials
+
+<values>
+/count_short= 0
+/countcorrect_short = 0
+/sumrt_short = 0
+/count_long = 0
+/countcorrect_long = 0
+/sumrt_long = 0
+</values>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	EXPRESSIONS
+**************************************************************************************************************
+**************************************************************************************************************
+Note: no outlier removal
+
+/count_frequent:			counts the frequently rewarded mouth trials (depends on values.expgroup)
+/count_infrequent:			counts the infrequently rewarded mouth trials (depends on values.expgroup)
+/countcorrect_frequent:		counts the frequently rewarded correct mouth trials (depends on values.expgroup)
+/countcorrect_infrequent:	counts the infrequently rewarded correct mouth trials (depends on values.expgroup)
+/sumrt_frequent:			sums the latencies of the frequently rewarded correct mouth trials in ms (depends on values.expgroup)
+/sumrt_infrequent:			sums the latencies of the infrequently rewarded correct mouth trials in ms (depends on values.expgroup)
+/propcorrect_frequent:		proportion correct frequently rewarded mouth trials
+/meanRT_frequent:			mean latency (in ms) of correct frequently rewarded mouth trials
+/propcorrect_infrequent:	proportion correct infrequently rewarded mouth trials
+/meanRT_infrequent:			mean latency (in ms) of correct infrequently rewarded mouth trials
+
+/propcorrect:				overall proportion correct -across all test trials-
+/meanRT:					overall mean response latency (in ms) of correct responses - across all test trials
+
+/logd:						Measure of Discriminability (Pizzagalli et al, 2005)
+/logb:						Measure of Response Bias  (Pizzagalli et al, 2005)
+
+/total:						the total earned in $ amounts
+
+<expressions >
+/count_frequent = if (values.expgroup == 1) values.count_short else values.count_long
+/count_infrequent = if (values.expgroup == 1) values.count_long else values.count_short
+/countcorrect_frequent = if (values.expgroup == 1) values.countcorrect_short else values.countcorrect_long
+/countcorrect_infrequent = if (values.expgroup == 1) values.countcorrect_long else values.countcorrect_short
+/sumrt_frequent = if (values.expgroup == 1) values.sumrt_short else values.sumrt_long
+/sumrt_infrequent = if (values.expgroup == 1) values.sumrt_long else values.sumrt_short
+/propcorrect_frequent = expressions.countcorrect_frequent/expressions.count_frequent
+/meanRT_frequent = expressions.sumrt_frequent/expressions.countcorrect_frequent
+/propcorrect_infrequent = expressions.countcorrect_infrequent/expressions.count_infrequent
+/meanRT_infrequent = expressions.sumrt_infrequent/expressions.countcorrect_infrequent
+
+/propcorrect = (values.countcorrect_short + values.countcorrect_long)/(values.count_short + values.count_long)
+/meanRT = (values.sumrt_long + values.sumrt_short)/(values.countcorrect_short + values.countcorrect_long)
+
+/logd = if (
+(expressions.countcorrect_frequent == expressions.count_frequent || expressions.countcorrect_infrequent == expressions.count_infrequent) || 
+(expressions.countcorrect_frequent == 0 || expressions.countcorrect_frequent == 0)){
+	"could not be computed";
+} else {
+	0.5 * log((expressions.countcorrect_frequent * expressions.countcorrect_infrequent)/
+	((expressions.count_frequent - expressions.countcorrect_frequent) * 
+	(expressions.count_infrequent - expressions.countcorrect_infrequent)))
+}
+/ logb = if (
+(expressions.countcorrect_frequent == expressions.count_frequent || expressions.countcorrect_infrequent == expressions.count_infrequent) || 
+(expressions.countcorrect_frequent == 0 || expressions.countcorrect_frequent == 0)){
+	"could not be computed";
+} else {
+0.5 * log((expressions.countcorrect_frequent * (expressions.count_infrequent - expressions.countcorrect_infrequent))/((expressions.count_frequent - expressions.countcorrect_frequent) * expressions.countcorrect_infrequent))	
+};
+
+
+/total = values.total/100
+</expressions>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	INSTRUCTIONS
+**************************************************************************************************************
+**************************************************************************************************************
+
+<text instructions>
+/ items = instructions
+/ select = sequence
+/ size = (95%, 90%)
+/ position = (0%, 10%)
+/ valign = top
+/ halign = left
+/ hjustify = center
+/ vjustify = center
+/ resetinterval = 0
+</text>
+
+<picture leftmouth_instruct>
+/ items = targets
+/ select = values.leftpic
+/ size = (20%, 20%)
+/ position = (25%, 58%)
+</picture>
+
+<picture rightmouth_instruct>
+/ items = targets
+/ select = values.rightpic
+/ size = (20%, 20%)
+/ position = (75%, 58%)
+</picture>
+
+<text leftresponselabel>
+/ items = ("<%values.leftresponselabel%>")
+/ fontstyle = ("Arial", 5%, true, false, false, false, 5, 1)
+/ position = (15%, 5%)
+/ vjustify = center
+/ txcolor = blue
+</text>
+
+<text rightresponselabel>
+/ items = ("<%values.rightresponselabel%>")
+/ fontstyle = ("Arial", 5%, true, false, false, false, 5, 1)
+/ position = (85%, 5%)
+/ vjustify = center
+/ txcolor = blue
+</text>
+
+
+<trial instructions>
+/ stimulusframes = [1 = instructions, leftmouth_instruct, rightmouth_instruct]
+/ validresponse = (57)
+</trial>
+
+*****************************
+General Helper Trial
+*****************************
+
+This trial is used when participants are asked to place their fingers on specific response
+buttons. On the touchscreen, this trial presents the (inactive) response buttons to the participants.
+<trial getReady>
+/ stimulusframes = [1 = getReady]
+/ trialduration = 5000
+/ validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ beginresponsetime = 5000
+/ errormessage = false
+/ recorddata = false
+</trial>
+
+
+**************************************************************************************************************
+**************************************************************************************************************
+	STIMULI
+**************************************************************************************************************
+**************************************************************************************************************
+
+<text fixation>
+/ items = ("+")
+/ fontstyle = ("Arial", parameters.fixationheight, false, false, false, false, 5, 1)
+/ position = (50%, 50%)
+</text>
+
+<text positivefeedback_test>
+/ items = feedback
+/ select = 2
+/ fontstyle = ("Arial", parameters.feedbackheight, false, false, false, false, 5, 1)
+/ position = (50%, 50%)
+/ txcolor = green
+</text>
+
+<text positivefeedback_practice>
+/ items = feedback
+/ select = 1
+/ fontstyle = ("Arial", 5%, true, false, false, false, 5, 1)
+/ txcolor = green
+/ position = (50%, 50%)
+</text>
+
+<text negativefeedback_practice>
+/ items = feedback
+/ select = 3
+/ fontstyle = ("Arial", 5%, true, false, false, false, 5, 1)
+/ txcolor = red
+/ position = (50%, 50%)
+</text>
+
+
+<picture signal>
+/ items = targets
+/ select = 1
+/ size = (parameters.picsize, parameters.picsize)
+/ position = (50%, 50%)
+</picture>
+
+<picture target>
+/ items = targets
+/ select = values.target
+/ size = (parameters.picsize, parameters.picsize)
+/ position = (50%, 50%)
+</picture>
+
+<clock restclock>
+/ mode = timer
+/ resetrate = block
+/ erase = false
+/ txcolor = yellow
+/ txbgcolor = black
+/ timeout = parameters.restduration
+/ position = (50%, 60%)
+/ format = "mm:ss"
+/ fontstyle = ("Arial", 5%, false, false, false, false, 5, 1)
+/ size = (20%, 10%)
+</clock>
+
+
+<text restinstructions>
+/ items = restinstructions
+/ fontstyle = ("Arial", 5%, false, false, false, false, 5, 1)
+/ position = (50%, 50%)
+</text>
+
+<text checkinstructions>
+/ items = checkinstructions
+/ select = sequence
+/ size = (95%, 90%)
+/ fontstyle = ("Arial", 3%, false, false, false, false, 5, 1)
+/ position = (50%, 52%)
+/ valign = center
+/ halign = center
+/ hjustify = center
+/ vjustify = center
+/ resetinterval = 0
+</text>
+
+<clock checkclock>
+/ mode = timer
+/ resetrate = block
+/ erase = false
+/ txcolor = yellow
+/ txbgcolor = black
+/ timeout = parameters.checkduration
+/ position = (50%, 90%)
+/ format = "mm:ss"
+/ fontstyle = ("Arial", 5%, false, false, false, false, 5, 1)
+/ size = (20%, 10%)
+</clock>
+
+<text checkpayment>
+/ items = checkpayment
+/ select = sequence
+/ size = (95%, 90%)
+/ fontstyle = ("Arial", 3%, false, false, false, false, 5, 1)
+/ position = (50%, 52%)
+/ valign = center
+/ halign = center
+/ hjustify = center
+/ vjustify = center
+/ resetinterval = 0
+</text>
+
+
+<clock paymentclock>
+/ mode = timer
+/ resetrate = block
+/ erase = false
+/ txcolor = yellow
+/ txbgcolor = black
+/ timeout = parameters.paymentduration
+/ position = (50%, 90%)
+/ format = "mm:ss"
+/ fontstyle = ("Arial", 5%, false, false, false, false, 5, 1)
+/ size = (20%, 10%)
+</clock>
+
+
+<text demoinstructions>
+/ items = demoinstructions
+/ select = sequence
+/ fontstyle = ("Arial", 3%, false, false, false, false, 5, 1)
+/ position = (50%, 95%)
+</text>
+
+
+<text checklikert>
+/ items = checklikert
+/ fontstyle = ("Arial", 5%, false, false, false, false, 5, 1)
+/ position = (70%, 50%)
+</text>
+
+<dropdown instructions_q>
+/ caption = "What is my goal in this task?"
+/ options = ("To identify short and long mouth stimuli as accurately as I can", "To respond as fast as I can so that I complete the task quickly", "To identify open and closed eye stimuli")
+/ position = (10%, 30%)
+/ required = true
+</dropdown>
+
+<dropdown asymmetric_q>
+/ caption = "Will every correct response I make be rewarded?"
+/ options = ("Yes, all my correct responses will be rewarded", "No, only some of my correct responsess will be rewarded")
+/ position = (10%, 50%)
+/ required = true 
+</dropdown>
+
+<dropdown payment_q>
+/ caption = "Will I be rewarded for accurate performance in this task?"
+/ options = ("Yes, the money I earn is real and I will be paid after completing the task", "No, the money I earn is pretend and there are no actual rewards")
+/ position = (10%, 70%)
+/ required = true 
+</dropdown>
+
+
+
+
+
+**************************************************************************************************************
+**************************************************************************************************************
+	TRIALS : Demo
+**************************************************************************************************************
+**************************************************************************************************************
+
+<trial shortmouth_demo>
+/ ontrialbegin = [
+					values.target = 2;
+					trial.shortmouth_demo.insertstimulustime(picture.signal, parameters.fixationduration);
+					trial.shortmouth_demo.insertstimulustime(picture.target, (parameters.fixationduration + parameters.signalduration));
+					trial.shortmouth_demo.insertstimulustime(picture.signal, (parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+					trial.shortmouth_demo.insertstimulustime(text.demoinstructions,(parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+				]
+/ ontrialend = [trial.shortmouth_demo.resetstimulusframes()]
+/ stimulustimes = [0 = fixation]
+/ beginresponsetime = parameters.fixationduration + parameters.signalduration
+/ responseinterrupt = immediate
+/validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ correctresponse = (values.responsekey_short)
+/ monkeyresponse = (values.responsekey_short)
+/ response = correct
+/ posttrialpause = parameters.ITI
+/ recorddata = true
+/ correctmessage = true(positivefeedback_practice, 500)
+</trial>
+
+<trial longmouth_demo>
+/ ontrialbegin = [
+					values.target = 3;
+					trial.longmouth_demo.insertstimulustime(picture.signal, parameters.fixationduration);
+					trial.longmouth_demo.insertstimulustime(picture.target, (parameters.fixationduration + parameters.signalduration));
+					trial.longmouth_demo.insertstimulustime(picture.signal, (parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+					trial.longmouth_demo.insertstimulustime(text.demoinstructions,(parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+				]
+/ ontrialend = [trial.longmouth_demo.resetstimulusframes()]
+/ stimulustimes = [0 = fixation]
+/ beginresponsetime = parameters.fixationduration + parameters.signalduration
+/ responseinterrupt = immediate
+/validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ monkeyresponse = (values.responsekey_long)
+/ correctresponse = (values.responsekey_long)
+/ response = correct
+/ posttrialpause = parameters.ITI
+/ recorddata = true
+/ correctmessage = true(positivefeedback_practice, 500)
+</trial>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	TRIALS : PRACTICE
+**************************************************************************************************************
+**************************************************************************************************************
+
+<trial shortmouth_practice>
+/ ontrialbegin = [
+					values.target = 2;
+					trial.shortmouth_practice.insertstimulustime(picture.signal, parameters.fixationduration);
+					trial.shortmouth_practice.insertstimulustime(picture.target, (parameters.fixationduration + parameters.signalduration));
+					trial.shortmouth_practice.insertstimulustime(picture.signal, (parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+				]
+/ ontrialend = [trial.shortmouth_practice.resetstimulusframes()]
+/ stimulustimes = [0 = fixation]
+/ beginresponsetime = parameters.fixationduration + parameters.signalduration
+/ responseinterrupt = immediate
+/validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ correctresponse = (values.responsekey_short)
+/ correctmessage = true(positivefeedback_practice, 500)
+/ errormessage = true(negativefeedback_practice, 500)
+/ posttrialpause = parameters.ITI
+/ recorddata = true
+</trial>
+
+<trial longmouth_practice>
+/ ontrialbegin = [
+					values.target = 3;
+					trial.longmouth_practice.insertstimulustime(picture.signal, parameters.fixationduration);
+					trial.longmouth_practice.insertstimulustime(picture.target, (parameters.fixationduration + parameters.signalduration));
+					trial.longmouth_practice.insertstimulustime(picture.signal, (parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+				]
+/ ontrialend = [trial.longmouth_practice.resetstimulusframes()]
+/ stimulustimes = [0 = fixation]
+/ beginresponsetime = parameters.fixationduration + parameters.signalduration
+/ responseinterrupt = immediate
+/validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ correctresponse = (values.responsekey_long)
+/ correctmessage = true(positivefeedback_practice, 500)
+/ errormessage = true(negativefeedback_practice, 500)
+/ posttrialpause = parameters.ITI
+/ recorddata = true
+</trial>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	TRIALS : EXPERIMENTAL
+**************************************************************************************************************
+**************************************************************************************************************
+
+Note: trial.shortmouth
+* updates counts and sets the appropriate itemnumber for the target picture
+* assesses whether the current trial has potential to be rewarded
+* presents the fixation stimulus statically and the remaining stimuli dynamically (to keep durations flexible)
+* starts collecting responses at onset of target
+* evaluates response
+* updates summary values
+* presents feedback if values.reward_short = 1 (=> the trial is a reward trial) AND response was correct
+(if response was incorrect for a short mouth reward trial -> the next correct response to a short mouth trial is rewarded)
+
+<trial shortmouth>
+/ ontrialbegin = [
+					values.count_short += 1;
+					values.target = 2;
+
+					if (values.expgroup == 1 && values.new_reward_short == 1)
+						values.reward_short = list.frequentrewardtrials.nextvalue;
+					if (values.expgroup == 2 && values.new_reward_short == 1)
+						values.reward_short = list.infrequentrewardtrials.nextvalue;
+					
+					trial.shortmouth.insertstimulustime(picture.signal, parameters.fixationduration);
+					trial.shortmouth.insertstimulustime(picture.target, (parameters.fixationduration + parameters.signalduration));
+					trial.shortmouth.insertstimulustime(picture.signal, (parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+				]
+/ ontrialend = [trial.shortmouth.resetstimulusframes()]
+/ stimulustimes = [0 = fixation]
+/ beginresponsetime = parameters.fixationduration + parameters.signalduration
+/ responseinterrupt = immediate
+/validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ correctresponse = (values.responsekey_short)
+/ ontrialend = [
+					if (trial.shortmouth.correct)
+						{
+							values.countcorrect_short += 1;
+							values.sumrt_short += trial.shortmouth.latency;
+						};
+
+					if (trial.shortmouth.error && values.reward_short == 1)
+						values.new_reward_short = 0;
+					else
+						values.new_reward_short = 1;
+				]
+/ branch = [
+					if (trial.shortmouth.correct && values.reward_short == 1) 
+						trial.positivefeedback_short
+					else
+						trial.ITI
+			]
+/ recorddata = true
+</trial>
+
+<trial shortmouth_harder1>
+/ ontrialbegin = [
+					values.count_short += 1;
+					values.target = 4;
+
+					if (values.expgroup == 1 && values.new_reward_short == 1)
+						values.reward_short = list.frequentrewardtrials.nextvalue;
+					if (values.expgroup == 2 && values.new_reward_short == 1)
+						values.reward_short = list.infrequentrewardtrials.nextvalue;
+					
+					trial.shortmouth_harder1.insertstimulustime(picture.signal, parameters.fixationduration);
+					trial.shortmouth_harder1.insertstimulustime(picture.target, (parameters.fixationduration + parameters.signalduration));
+					trial.shortmouth_harder1.insertstimulustime(picture.signal, (parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+				]
+/ ontrialend = [trial.shortmouth_harder1.resetstimulusframes()]
+/ stimulustimes = [0 = fixation]
+/ beginresponsetime = parameters.fixationduration + parameters.signalduration
+/ responseinterrupt = immediate
+/validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ correctresponse = (values.responsekey_short)
+/ ontrialend = [
+					if (trial.shortmouth_harder1.correct)
+						{
+							values.countcorrect_short += 1;
+							values.sumrt_short += trial.shortmouth_harder1.latency;
+						};
+
+					if (trial.shortmouth_harder1.error && values.reward_short == 1)
+						values.new_reward_short = 0;
+					else
+						values.new_reward_short = 1;
+				]
+/ branch = [
+					if (trial.shortmouth_harder1.correct && values.reward_short == 1) 
+						trial.positivefeedback_short
+					else
+						trial.ITI
+			]
+/ recorddata = true
+</trial>
+
+<trial shortmouth_harder2>
+/ ontrialbegin = [
+					values.count_short += 1;
+					values.target = 5;
+
+					if (values.expgroup == 1 && values.new_reward_short == 1)
+						values.reward_short = list.frequentrewardtrials.nextvalue;
+					if (values.expgroup == 2 && values.new_reward_short == 1)
+						values.reward_short = list.infrequentrewardtrials.nextvalue;
+					
+					trial.shortmouth_harder2.insertstimulustime(picture.signal, parameters.fixationduration);
+					trial.shortmouth_harder2.insertstimulustime(picture.target, (parameters.fixationduration + parameters.signalduration));
+					trial.shortmouth_harder2.insertstimulustime(picture.signal, (parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+				]
+/ ontrialend = [trial.shortmouth_harder2.resetstimulusframes()]
+/ stimulustimes = [0 = fixation]
+/ beginresponsetime = parameters.fixationduration + parameters.signalduration
+/ responseinterrupt = immediate
+/validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ correctresponse = (values.responsekey_short)
+/ ontrialend = [
+					if (trial.shortmouth_harder2.correct)
+						{
+							values.countcorrect_short += 1;
+							values.sumrt_short += trial.shortmouth_harder2.latency;
+						};
+
+					if (trial.shortmouth_harder2.error && values.reward_short == 1)
+						values.new_reward_short = 0;
+					else
+						values.new_reward_short = 1;
+				]
+/ branch = [
+					if (trial.shortmouth_harder2.correct && values.reward_short == 1) 
+						trial.positivefeedback_short
+					else
+						trial.ITI
+			]
+/ recorddata = true
+</trial>
+
+<trial longmouth>
+/ ontrialbegin = [
+					values.count_long += 1;
+
+					if (values.expgroup == 2 && values.new_reward_long == 1)
+						values.reward_long = list.frequentrewardtrials.nextvalue;
+					if (values.expgroup == 1 && values.new_reward_long == 1)
+						values.reward_long = list.infrequentrewardtrials.nextvalue;
+					
+					values.target = 3;
+					trial.longmouth.insertstimulustime(picture.signal, parameters.fixationduration);
+					trial.longmouth.insertstimulustime(picture.target, (parameters.fixationduration + parameters.signalduration));
+					trial.longmouth.insertstimulustime(picture.signal, (parameters.fixationduration + parameters.signalduration + parameters.targetduration));
+				]
+/ ontrialend = [trial.longmouth.resetstimulusframes()]
+/ stimulustimes = [0 = fixation]
+/ beginresponsetime = parameters.fixationduration + parameters.signalduration
+/ responseinterrupt = immediate
+/validresponse = (parameters.responsekeyleft, parameters.responsekeyright)
+/ correctresponse = (values.responsekey_long)
+/ ontrialend = [
+					if (trial.longmouth.correct)
+						{
+							values.countcorrect_long += 1;
+							values.sumrt_long += trial.longmouth.latency;
+						};
+
+					if (trial.longmouth.error && values.reward_long == 1)
+						values.new_reward_long = 0;
+					else 
+						values.new_reward_long = 1;
+				]
+/ branch = [
+					if (trial.longmouth.correct && values.reward_long == 1) 
+						trial.positivefeedback_long
+					else
+						trial.ITI
+			]
+/ recorddata = true
+</trial>
+
+<trial positivefeedback_short>
+/ ontrialbegin = [
+					values.total += parameters.rewardamount;
+					values.countrewardtrials += 1;
+				]
+/ stimulusframes = [1 = positivefeedback_test]
+/ timeout = parameters.feedbackduration
+/ posttrialpause = parameters.ITI
+/ recorddata = true
+</trial>
+
+<trial positivefeedback_long>
+/ ontrialbegin = [
+					values.total += parameters.rewardamount;
+					values.countrewardtrials += 1;
+				]
+/ stimulusframes = [1 = positivefeedback_test]
+/ timeout = parameters.feedbackduration
+/ posttrialpause = parameters.ITI
+/ recorddata = true
+</trial>
+
+<trial ITI>
+/ trialduration = parameters.ITI
+/ recorddata = false
+</trial>
+
+<trial rest>
+/ skip = [values.blockcount == 3]
+/ stimulusframes = [1 = restinstructions, restclock]
+/ trialduration = parameters.restduration
+/ recorddata = false
+</trial>
+
+<trial check>
+/ skip = [values.blockcount == 3]
+/ stimulusframes = [1 = checkinstructions, checkclock, leftmouth_instruct, rightmouth_instruct]
+/ trialduration = parameters.checkduration
+/ recorddata = false
+</trial>
+
+<trial payment>
+/ skip = [values.blockcount == 3]
+/ stimulusframes = [1 = checkpayment, paymentclock]
+/ trialduration = parameters.paymentduration
+/ recorddata = false
+</trial>
+
+
+
+<surveypage likert>
+/ caption = "To check that you understood the instructions, please answer the following questions" 
+/ fontstyle = ("Verdana"; -16, true, false, false, false, 5, 0)
+/ questions = [1=instructions_q; 2=asymmetric_q; 3=payment_q]
+</surveypage>
+
+**************************************************************************************************************
+**************************************************************************************************************
+	BLOCKS
+**************************************************************************************************************
+**************************************************************************************************************
+
+<block practice>
+/ bgstim = (leftresponselabel, rightresponselabel)
+/ trials = [
+				1 = instructions;
+				2 = getReady;
+				3 = shortmouth_demo; 
+				4 = longmouth_demo; 
+				5 = instructions; 
+				6 = getReady;
+				7-8 = noreplace(shortmouth_practice, longmouth_practice);
+				9 = check;
+				10 = payment;
+				11 = likert]
+</block>
+
+<block testinstructions>
+/ bgstim = (leftresponselabel, rightresponselabel)
+/ onblockbegin = [values.selectinstructions += 1]
+/ trials = [1 = instructions; 2 = getReady]
+</block>
+
+
+<block ProbalisticRewardTask>
+/ bgstim = (leftresponselabel, rightresponselabel)
+/ onblockbegin = [
+					values.blockcount += 1;
+					values.new_reward_short = 1;
+					values.new_reward_long = 1;
+
+					]
+/ trials = [1-100 = list.trialselector; 101 = rest]
+</block>
+
+<block ProbalisticRewardTask_harder1>
+/ bgstim = (leftresponselabel, rightresponselabel)
+/ onblockbegin = [
+					values.blockcount += 1;
+					values.new_reward_short = 1;
+					values.new_reward_long = 1;
+
+					]
+/ trials = [1-100 = list.trialselector_harder1; 101 = rest]
+</block>
+
+<block ProbalisticRewardTask_harder2>
+/ bgstim = (leftresponselabel, rightresponselabel)
+/ onblockbegin = [
+					values.blockcount += 1;
+					values.new_reward_short = 1;
+					values.new_reward_long = 1;
+
+					]
+/ trials = [1-100 = list.trialselector_harder2; 101 = rest]
+</block>
+
+
+
+**************************************************************************************************************
+**************************************************************************************************************
+	EXPERIMENT 
+**************************************************************************************************************
+**************************************************************************************************************
+4 experimental groups:
+
+odd groupnumbers-> values.expgroup = 1 (short mouth = frequent reward; long mouth = infrequent reward)
+even groupnumbers-> values.expgroup = 2 (short mouth = infrequent reward; long mouth = frequent reward)
+
+within those 2 groups: responsekeys are counterbalanced
+groupnumbers 1, 2 -> short is left, long is right
+groupnumbers 3, 4 -> short is right, long is left
+
+<expt>
+/ postinstructions = (End)
+/ subjects = (1 of 4)
+/ groupassignment = groupnumber
+/ onexptbegin = [
+					values.expgroup = 1;
+					values.responsekeyassignment = 1;
+					values.responsekey_short = parameters.responsekeyleft;
+					values.responsekey_short_label = parameters.responsekeyleft_label;
+					values.responsekey_long = parameters.responsekeyright;
+					values.responsekey_long_label = parameters.responsekeyright_label;
+					values.leftresponselabel = "SHORT";
+					values.rightresponselabel = "LONG";
+					values.leftpic = 2;
+					values.rightpic = 3;
+					
+					if (monkey.monkeymode){
+						parameters.restduration = 0;
+					};					
+]
+/ blocks = [1 = practice; 2 = testinstructions; 3 = ProbalisticRewardTask; 4 = ProbalisticRewardTask_harder1; 5 = ProbalisticRewardTask_harder2]
+/ onexptend = [values.completed = 1]
+</expt>
+
+<expt>
+/ postinstructions = (End)
+/ subjects = (2 of 4)
+/ groupassignment = groupnumber
+/ onexptbegin = [
+					values.expgroup = 2;
+					values.responsekeyassignment = 1;
+					values.responsekey_short = parameters.responsekeyleft;
+					values.responsekey_short_label = parameters.responsekeyleft_label;
+					values.responsekey_long = parameters.responsekeyright;
+					values.responsekey_long_label = parameters.responsekeyright_label;
+					values.leftresponselabel = "SHORT";
+					values.rightresponselabel = "LONG";
+					values.leftpic = 2;
+					values.rightpic = 3;
+					if (monkey.monkeymode){
+						parameters.restduration = 0;
+					};					
+]
+/ blocks = [1 = practice; 2 = testinstructions; 3 = ProbalisticRewardTask; 4 = ProbalisticRewardTask_harder1; 5 = ProbalisticRewardTask_harder2]
+/ onexptend = [values.completed = 1]
+</expt>
+
+<expt>
+/ postinstructions = (End)
+/ subjects = (3 of 4)
+/ groupassignment = groupnumber
+/ onexptbegin = [
+					values.expgroup = 1;
+					values.responsekeyassignment = 2;
+					values.responsekey_short = parameters.responsekeyright;
+					values.responsekey_short_label = parameters.responsekeyright_label;
+					values.responsekey_long = parameters.responsekeyleft;
+					values.responsekey_long_label = parameters.responsekeyleft_label;
+					values.leftresponselabel = "LONG";
+					values.rightresponselabel = "SHORT";
+					values.leftpic = 3;
+					values.rightpic = 2;
+					if (monkey.monkeymode){
+						parameters.restduration = 0;
+					};					
+]
+/ blocks = [1 = practice; 2 = testinstructions; 3 = ProbalisticRewardTask; 4 = ProbalisticRewardTask_harder1; 5 = ProbalisticRewardTask_harder2]
+/ onexptend = [values.completed = 1]
+</expt>
+
+<expt>
+/ postinstructions = (End)
+/ subjects = (4 of 4)
+/ groupassignment = groupnumber
+/ onexptbegin = [
+					values.expgroup = 2;
+					values.responsekeyassignment = 2;
+					values.responsekey_short = parameters.responsekeyright;
+					values.responsekey_short_label = parameters.responsekeyright_label;
+					values.responsekey_long = parameters.responsekeyleft;
+					values.responsekey_long_label = parameters.responsekeyleft_label;
+					values.leftresponselabel = "LONG";
+					values.rightresponselabel = "SHORT";
+					values.leftpic = 3;
+					values.rightpic = 2;
+					if (monkey.monkeymode){
+						parameters.restduration = 0;
+					};					
+]
+/ blocks = [1 = practice; 2 = testinstructions; 3 = ProbalisticRewardTask; 4 = ProbalisticRewardTask_harder1; 5 = ProbalisticRewardTask_harder2]
+/ onexptend = [values.completed = 1]
+</expt>
+
+
+
+<monkey>
+/ percentcorrect =95
+</monkey>
+
+**************************************************************************************************************
+												End of File
+**************************************************************************************************************
